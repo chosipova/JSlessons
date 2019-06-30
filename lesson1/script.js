@@ -5,5 +5,5 @@ var deposit;
 var mission;
 var period;
 
-console.log("Мы тут!");
+console.log("lesson01");
 alert("Hello, world!")
