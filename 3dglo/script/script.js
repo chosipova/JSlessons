@@ -119,7 +119,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     popup.addEventListener('click', (event) => {
       let target = event.target;
-
       if (target.classList.contains('popup-close')) {
         popup.style.display = 'none';
       } else {
@@ -129,10 +128,8 @@ window.addEventListener('DOMContentLoaded', function () {
         }
       }
 
+    });
 
-
-
-    })
   };
 
   togglePopup();
@@ -297,6 +294,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
   dataImgChange();
 
+  //валидация
   const calcValue = () => {
     const calcBlock = document.querySelector('.calc-block');
 
@@ -354,4 +352,96 @@ window.addEventListener('DOMContentLoaded', function () {
   };
 
   calc(100);
+
+  //send-ajax=form
+
+  const sendForm = (formInput) => {
+    //сообщение для пользователя
+    const errorMassage = 'Что-то пошло не так...',
+      loadMassage = 'Загурзка...',
+      saccessMesage = 'Спасибо! Мы скоро с вами свяжемся.';
+    //получили форму
+    const form = formInput;
+    //div в котором будет сообщение
+    const statusMessage = document.createElement('div');
+    statusMessage.style.color = '#fff';
+    statusMessage.style.csstext = 'font-size: 2rem';
+    statusMessage.classList.add('request');
+
+    form.addEventListener('input', (event) => {
+      if (event.target.matches('.form-phone')) {
+        event.target.value = event.target.value.replace(/[^\+\d]/g, "");
+      }
+      if (event.target.matches('.form-name') || event.target.matches('.mess')) {
+        event.target.value = event.target.value.replace(/[^а-яА-ЯёЁ\ ]/g, "");
+      }
+
+    });
+
+    //отслеживаем нажатие на кнопку
+    form.addEventListener('submit', (event) => {
+      //отменяем дефолтное поведеие события, чтобы не было обновления страницы
+      event.preventDefault();
+      //добавили div на страницу, пустой
+      form.appendChild(statusMessage);
+
+      statusMessage.textContent = loadMassage; //тут может быть спиннер, анимация, окно
+
+      //объект считывает данные формы и имеет обязательно атрибут name
+      const formData = new FormData(form);
+      let body = {};
+
+      // for (let val of formData.entries()) {
+      //   body[val[0]] = val[1];
+      // }
+      //перевод данных в формат JSON строки
+      formData.forEach((val, key) => {
+        body[key] = val;
+      });
+
+      postData(body, () => {
+        statusMessage.textContent = saccessMesage; //уведомляем об успехе
+      }, (error) => {
+        statusMessage.textContent = errorMassage; //уведомляем об ошибке
+        console.error(error);
+      });
+
+      form.reset();
+    });
+
+
+    const postData = (body, outputData) => {
+      //объект реквест
+      const request = new XMLHttpRequest();
+
+      //отслеживание события readystate, смена статуса отправки запроса
+      request.addEventListener('readystatechange', () => {
+
+        if (request.readyState !== 4) {
+          return;
+        }
+        //когда статус 4  - ответ от сервера дан
+        if (request.status == 200) {
+          outputData();
+        } else {
+          errorData(request.status);
+        }
+      });
+
+      //сам запрос
+      request.open('POST', './server.php');
+      //добавили заголовки JSON, но бывают FormData
+      request.setRequestHeader('Content-Type', 'application/json');
+
+      //отправка данных на сервер
+      request.send(JSON.stringify(body));
+    };
+  };
+
+  sendForm(document.getElementById('form1'));
+  sendForm(document.getElementById('form2'));
+  sendForm(document.getElementById('form3'));
+
+
+
 })
