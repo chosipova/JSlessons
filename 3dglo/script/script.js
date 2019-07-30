@@ -375,7 +375,6 @@ window.addEventListener('DOMContentLoaded', function () {
       if (event.target.matches('.form-name') || event.target.matches('.mess')) {
         event.target.value = event.target.value.replace(/[^а-яА-ЯёЁ\ ]/g, "");
       }
-
     });
 
     //отслеживаем нажатие на кнопку
@@ -391,57 +390,56 @@ window.addEventListener('DOMContentLoaded', function () {
       const formData = new FormData(form);
       let body = {};
 
-      // for (let val of formData.entries()) {
-      //   body[val[0]] = val[1];
-      // }
-      //перевод данных в формат JSON строки
+
       formData.forEach((val, key) => {
         body[key] = val;
       });
 
-      postData(body, () => {
-        statusMessage.textContent = saccessMesage; //уведомляем об успехе
-      }, (error) => {
-        statusMessage.textContent = errorMassage; //уведомляем об ошибке
-        console.error(error);
-      });
+      postData(body)
+        .then(() => {
+          statusMessage.textContent = saccessMesage;
+        })
+        .catch((error) => {
+          statusMessage.textContent = errorMassage;
+          console.error(error);
+        });
 
       form.reset();
     });
 
+    //promises
+    const postData = (body) => {
+      return new Promise((resolve, reject) => {
+        //объект реквест
+        const request = new XMLHttpRequest();
+        //сам запрос
+        request.open('POST', './server.php');
 
-    const postData = (body, outputData) => {
-      //объект реквест
-      const request = new XMLHttpRequest();
+        //добавили заголовки JSON, но бывают FormData
+        request.setRequestHeader('Content-Type', 'application/json');
 
-      //отслеживание события readystate, смена статуса отправки запроса
-      request.addEventListener('readystatechange', () => {
-
-        if (request.readyState !== 4) {
-          return;
-        }
-        //когда статус 4  - ответ от сервера дан
-        if (request.status == 200) {
-          outputData();
-        } else {
-          errorData(request.status);
-        }
+        //отслеживание события readystate, смена статуса отправки запроса
+        request.addEventListener('readystatechange', () => {
+          if (request.readyState !== 4) {
+            return;
+          }
+          //когда статус 4  - ответ от сервера дан
+          if (request.status == 200) {
+            resolve();
+          } else {
+            reject(request.statusText);
+          }
+        });
+        //отправка данных на сервер
+        request.send(JSON.stringify(body));
       });
-
-      //сам запрос
-      request.open('POST', './server.php');
-      //добавили заголовки JSON, но бывают FormData
-      request.setRequestHeader('Content-Type', 'application/json');
-
-      //отправка данных на сервер
-      request.send(JSON.stringify(body));
     };
+
+
   };
 
   sendForm(document.getElementById('form1'));
   sendForm(document.getElementById('form2'));
   sendForm(document.getElementById('form3'));
-
-
 
 })
