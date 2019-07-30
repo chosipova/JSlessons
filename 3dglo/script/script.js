@@ -388,15 +388,13 @@ window.addEventListener('DOMContentLoaded', function () {
 
       //объект считывает данные формы и имеет обязательно атрибут name
       const formData = new FormData(form);
-      let body = {};
 
-
-      formData.forEach((val, key) => {
-        body[key] = val;
-      });
-
-      postData(body)
-        .then(() => {
+      postData(formData)
+        .then((response) => {
+          if (response.status !== 200) {
+            throw new Error('status network not 200 ');
+          }
+          //console.log(response);
           statusMessage.textContent = saccessMesage;
         })
         .catch((error) => {
@@ -407,34 +405,16 @@ window.addEventListener('DOMContentLoaded', function () {
       form.reset();
     });
 
-    //promises
+
     const postData = (body) => {
-      return new Promise((resolve, reject) => {
-        //объект реквест
-        const request = new XMLHttpRequest();
-        //сам запрос
-        request.open('POST', './server.php');
-
-        //добавили заголовки JSON, но бывают FormData
-        request.setRequestHeader('Content-Type', 'application/json');
-
-        //отслеживание события readystate, смена статуса отправки запроса
-        request.addEventListener('readystatechange', () => {
-          if (request.readyState !== 4) {
-            return;
-          }
-          //когда статус 4  - ответ от сервера дан
-          if (request.status == 200) {
-            resolve();
-          } else {
-            reject(request.statusText);
-          }
-        });
-        //отправка данных на сервер
-        request.send(JSON.stringify(body));
+      return fetch('./server.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: body
       });
     };
-
 
   };
 
