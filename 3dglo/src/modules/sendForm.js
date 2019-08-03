@@ -32,7 +32,13 @@
      //объект считывает данные формы и имеет обязательно атрибут name
      const formData = new FormData(form);
 
-     postData(formData)
+     let body = {};
+
+     formData.forEach((val, key) => {
+       body[key] = val;
+     });
+
+     postData(body)
        .then((response) => {
          if (response.status !== 200) {
            throw new Error('status network not 200 ');
@@ -55,7 +61,7 @@
        headers: {
          'Content-Type': 'application/json'
        },
-       body: body
+       body: JSON.stringify(body)
      });
    };
 
